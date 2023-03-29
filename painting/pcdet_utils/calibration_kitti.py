@@ -1,6 +1,7 @@
+
 import numpy as np
 
-
+'''
 def get_calib_from_file(calib_file):
     with open(calib_file) as f:
         lines = f.readlines()
@@ -18,6 +19,45 @@ def get_calib_from_file(calib_file):
             'P3': P3.reshape(3, 4),
             'R0': R0.reshape(3, 3),
             'Tr_velo2cam': Tr_velo_to_cam.reshape(3, 4)}
+'''
+#from https://github.com/utiasSTARS/pykitti/blob/master/pykitti/utils.py
+def get_calib_from_file(calib_file):
+    """Read in a calibration file and parse into a dictionary."""
+    data = {}
+
+    with open(calib_file, 'r') as f:
+        lines = [line for line in f.readlines() if line.strip()]
+    for line in lines:
+        key, value = line.split(':', 1)
+        # The only non-float values in these files are dates, which
+        # we don't care about anyway
+        try:
+            if key == 'R0_rect':
+                data['R0'] = np.array([float(x) for x in value.split()]).reshape(3, 3)
+            else:
+                data[key] = np.array([float(x) for x in value.split()]).reshape(3, 4)
+        except ValueError:
+            pass
+
+    return data
+
+def get_calib_fromfile(calib_file):
+        calib = get_calib_from_file(calib_file)
+        calib['P0'] = np.concatenate(([calib['P0'], np.array([[0., 0., 0., 1.], [0., 0., 0., 1.], [0., 0., 0., 1.]])]), axis=0)
+        calib['P1'] = np.concatenate(([calib['P1'], np.array([[0., 0., 0., 1.], [0., 0., 0., 1.], [0., 0., 0., 1.]])]), axis=0)
+        calib['P2'] = np.concatenate(([calib['P2'], np.array([[0., 0., 0., 1.], [0., 0., 0., 1.], [0., 0., 0., 1.]])]), axis=0)
+        calib['P3'] = np.concatenate(([calib['P3'], np.array([[0., 0., 0., 1.], [0., 0., 0., 1.], [0., 0., 0., 1.]])]), axis=0)
+        calib['P4'] = np.concatenate(([calib['P4'], np.array([[0., 0., 0., 1.], [0., 0., 0., 1.], [0., 0., 0., 1.]])]), axis=0)
+        calib['R0_rect'] = np.zeros([4, 4], dtype=calib['R0'].dtype)
+        calib['R0_rect'][3, 3] = 1.
+        calib['R0_rect'][:3, :3] = calib['R0']
+        calib['Tr_velo_to_cam_0'] = np.concatenate([calib['Tr_velo_to_cam_0'], np.array([[0., 0., 0., 1.]], )], axis=0)
+        calib['Tr_velo_to_cam_1'] = np.concatenate([calib['Tr_velo_to_cam_1'], np.array([[0., 0., 0., 1.]], )], axis=0)
+        calib['Tr_velo_to_cam_2'] = np.concatenate([calib['Tr_velo_to_cam_2'], np.array([[0., 0., 0., 1.]], )], axis=0)
+        calib['Tr_velo_to_cam_3'] = np.concatenate([calib['Tr_velo_to_cam_3'], np.array([[0., 0., 0., 1.]], )], axis=0)
+        calib['Tr_velo_to_cam_4'] = np.concatenate([calib['Tr_velo_to_cam_4'], np.array([[0., 0., 0., 1.]], )], axis=0)
+        return calib
+
 
 
 class Calibration(object):
@@ -29,7 +69,7 @@ class Calibration(object):
 
         self.P2 = calib['P2']  # 3 x 4
         self.R0 = calib['R0']  # 3 x 3
-        self.V2C = calib['Tr_velo2cam']  # 3 x 4
+        self.V2C = calib['Tr_velo_to_cam_2']  # 3 x 4
 
         # Camera intrinsics and extrinsics
         self.cu = self.P2[0, 2]
@@ -123,3 +163,5 @@ class Calibration(object):
         boxes_corner = np.concatenate((x.reshape(-1, 8, 1), y.reshape(-1, 8, 1)), axis=2)
 
         return boxes, boxes_corner
+
+# %%
