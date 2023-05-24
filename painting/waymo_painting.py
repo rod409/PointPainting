@@ -266,7 +266,7 @@ class Painter:
             # points: N * 8
             points = self.augment_lidar_class_scores_both(scores_from_cam, points, calib_fromfile)
             
-            np.save(self.save_path + ("%s.npy" % img_file), points)
+            np.save(self.save_path + ("%s.npy" % sample_idx), points)
 
 if __name__ == '__main__':
     painter = Painter(SEG_NET)
