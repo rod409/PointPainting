@@ -247,9 +247,9 @@ class Painter:
         return augmented_lidar
 
     def run(self):
-        num_image = 2 #modified for testing
-        for idx in tqdm(range(num_image)):
-            sample_idx = "%07d" % idx
+        image_files = os.listdir(self.root_split_path + 'image_0')
+        for img_file in tqdm(image_files):
+            sample_idx = os.path.splitext(img_file)[0]
             # points: N * 4(x, y, z, r)
             points = self.get_lidar(sample_idx)
             
@@ -266,7 +266,7 @@ class Painter:
             # points: N * 8
             points = self.augment_lidar_class_scores_both(scores_from_cam, points, calib_fromfile)
             
-            np.save(self.save_path + ("%07d.npy" % idx), points)
+            np.save(self.save_path + ("%s.npy" % img_file), points)
 
 if __name__ == '__main__':
     painter = Painter(SEG_NET)
